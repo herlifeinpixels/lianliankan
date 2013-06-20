@@ -28,23 +28,6 @@ app.directive('card', function() {
     }
 });
 
-function addCanvas()
-{
-    // Add a LI element
-    var container = document.createElement('li');
-    document.getElementById('wrapper').appendChild(container);
-    // Get its dimensions
-    var width = parseInt(getComputedStyle(container,"").getPropertyValue('width'));
-    var height = parseInt(getComputedStyle(container,"").getPropertyValue('height'));
-    // Create a RaphaelJS canvas inside it
-    var paper = Raphael(container, width, height);
-    // Draw!
-    paper.rect(0, 0, width, height).attr('fill','black');
-    paper.circle(width/2, height/2, Math.min(width,height)/4).attr('fill','white');
-    // The end...
-    return paper;
-}
-
 // get DOM element of containing cell
 function drawSVG(container, iconpath) {
     // Get its dimensions
