@@ -27,12 +27,13 @@
                 <div id="gameheader" class="clearfix">
                     <div id="level" class="notice">Level: {{game.level}}</div>
                     <div id="pairs" class="notice">{{game.remaining}} Pairs Remaining</div>
+                    <div id="pairs" class="notice">{{game.score}} Awesome Points</div>
                 </div>
                 <table id="gameboard" class="clearfix">
                     <tr ng-repeat="row in game.grid">
                         <td ng-repeat="icon in row" class="container" ng-click="game.select(icon)" ng-class="{selected: icon.selected}">
-                            <card icon="icon" class="icon" >
-                            </card>
+                            <block icon="icon" class="icon" >
+                            </block>
                         </td>
                     </tr>
                 </table>
