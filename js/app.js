@@ -27,14 +27,3 @@ app.directive('card', function() {
         }
     }
 });
-
-// get DOM element of containing cell
-function drawSVG(container, iconpath) {
-    // Get its dimensions
-    var width = parseInt(getComputedStyle(container,"").getPropertyValue('width'));
-    var height = parseInt(getComputedStyle(container,"").getPropertyValue('height'));
-    var paper = Raphael(container, width, height);
-    
-    paper.path(iconpath).attr({fill: "#000", stroke: "none"});
-    return paper;
-}
