@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" ng-app="app">
+    <head>
+        <meta charset="utf-8">
+        <title>lianliankan</title>
+        <meta name="description" content="I'm a game! Play me!">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="css/normalize.min.css">
+        <link href='http://fonts.googleapis.com/css?family=Share+Tech' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/main.css">
+        
+        <!-- Load resources -->
+        <script type="text/javascript" src="js/vendor/jquery.min.js"></script>
+        <script type="text/javascript" src="js/vendor/angular.min.js"></script>
+        <script type="text/javascript" src="js/vendor/raphael.min.js"></script>
+        <script type="text/javascript" src="js/icons.js"></script>
+        
+        <!-- Load game controller only when resources are done loading -->
+        <script type="text/javascript" src="js/app.js"></script>
+        <script type="text/javascript" src="js/game.js"></script>
+
+    </head>
+    <body ng-controller="GameCtrl">
+        <div id="wrapper">
+            <div id="GameCtrl">
+                <div id="gameheader" class="clearfix">
+                    <div id="level" class="notice">Level: {{game.level}}</div>
+                    <div id="pairs" class="notice">{{game.remaining}} Pairs Remaining</div>
+                </div>
+                <table id="gameboard" class="clearfix">
+                    <tr ng-repeat="row in game.grid">
+                        <td ng-repeat="icon in row" class="container" ng-click="game.select(icon)" ng-class="{selected: icon.selected}">
+                            <card icon="icon" class="icon" >
+                            </card>
+                        </td>
+                    </tr>
+                </table>
+
+            </div> <!-- #grid -->
+        </div>
+    </body>
+</html>

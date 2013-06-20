@@ -1,0 +1,75 @@
+/* --------------------------
+----------------------------*/
+body {
+    font: 16px/26px Helvetica, Helvetica Neue, Arial;
+    background: #222;
+    color: #AAA;
+}
+
+#wrapper {
+    margin: 0 auto;
+    width: 90%;
+}
+
+table#gameboard { 
+  border-spacing: 10px;
+  border-collapse: separate;
+}
+
+#gameboard td {
+    background: #EEE;
+    border: 0;
+    height: 5em;
+    width: 5em;
+    
+    -o-transition:background 200ms ease-in;
+    -ms-transition:background 200ms ease-in;
+    -moz-transition:background 200ms ease-in;
+    -webkit-transition:background 200ms ease-in;
+    transition:background 200ms ease-in;
+}
+
+#gameboard td.selected {
+    background: #333;
+}
+
+div.notice {
+    display: inline-block;
+    font: 1.6em 'Share Tech', sans-serif;
+    text-transform: uppercase;
+    background: #333;
+    padding: 10px 16px;
+    margin: 10px 0 0 10px;
+}
+
+.icon {
+    width: 0;
+    height: 0;
+}
+
+/* --------------------------------
+   Helper classes - h5bp.com
+----------------------------------- */
+
+.hidden {
+    display: none !important;
+    visibility: hidden;
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+.clearfix:before,
+.clearfix:after {
+    content: " ";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+.clearfix {
+    *zoom: 1;
+}
