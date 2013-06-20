@@ -12,15 +12,15 @@ body {
 }
 
 table#gameboard { 
-  border-spacing: 10px;
+  border-spacing: 5px;
   border-collapse: separate;
 }
 
 #gameboard td {
     background: #EEE;
     border: 0;
-    height: 5em;
-    width: 5em;
+    height: 3.5em;
+    width: 3.5em;
     
     -o-transition:background 200ms ease-in;
     -ms-transition:background 200ms ease-in;
@@ -35,7 +35,7 @@ table#gameboard {
 
 div.notice {
     display: inline-block;
-    font: 1.6em 'Share Tech', sans-serif;
+    font: 1.2em 'Share Tech', sans-serif;
     text-transform: uppercase;
     background: #333;
     padding: 10px 16px;

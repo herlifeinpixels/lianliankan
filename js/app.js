@@ -10,19 +10,19 @@ app.controller('GameCtrl', function GameCtrl($scope, game) {
     $scope.game = game;
 });
 
-app.directive('card', function() {
+app.directive('block', function() {
     return {
         restrict: 'E',
         scope: {
-          icon: '='
+            icon: '='
         },
         link: function (scope, element, attrs) { // This isn't pretty but it works
+            // console.log(scope.icon);
             if (scope.icon.name != null) {
-                console.log(element[0].outerHTML);
-                var paper = Raphael(element[0], 75, 75); // TODO: Make this scalable
+                var paper = Raphael(element[0], 54, 54); // TODO: Make this scalable
                 var rect = paper.path(icons[scope.icon.name][1])
                     .attr({fill: icons[scope.icon.name][0], stroke: "none"})
-                    .transform("t24,24s2");
+                    .transform("t14,14s1.6");
             }
         }
     }
