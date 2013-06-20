@@ -1,10 +1,12 @@
 /* Model*/
 'use strict';
 
-function Icon(name, xpos, ypos) {
+// Model for each block on grid
+function Icon(name, xpos, ypos, isEmpty) {
     this.name = name;
     this.x = xpos;
     this.y = ypos;
+    this.isEmpty = isEmpty;
     this.selected = false;
 }
 
@@ -12,8 +14,34 @@ Icon.prototype.select = function() {
     this.selected = !this.selected;
 }
 
+Icon.prototype.clear = function() {
+    this.isEmpty = true;
+    this.name = null;
+    this.selected = false;
+}
+
+// Decrementing timer
+// TODO: Fix this, not returning updates
 function Timer(max) {
-    return max;
+    var timeleft = max;
+
+    var update = function () {
+        if (timeleft > 0) {
+            timeleft --;
+        } else {
+            clearInterval(update);
+        }
+    };
+    setInterval(update, 1000);
+    
+    this.getTime = function() {
+        return timeleft;
+    }
+
+}
+
+Timer.prototype.addTime = function(moretime) {
+    this.timeleft += moretime;
 }
 
 function Game(difficulty) {
@@ -26,8 +54,10 @@ function Game(difficulty) {
         "maxTime": 30
     },
     this.gameOver = false;
-    this.timeleft = new Timer(this.settings.maxTime);
+    var clock = new Timer(this.settings.maxTime);
+    this.timer = clock.getTime();
     this.level = difficulty;
+    this.score = 0;
     
     this.numSelect = 0;
     this.path = [];
@@ -38,6 +68,10 @@ function Game(difficulty) {
     this.grid = this.makegrid();
     
     this.select = function(icon) {
+        // console.log(icon);
+        if(icon.isEmpty) { 
+            return false;
+        };
         
         // Selection Logic
         if (icon == this.first || icon == this.last) {
@@ -59,27 +93,51 @@ function Game(difficulty) {
             this.last = icon;
             this.numSelect ++;
         } else {
-            this.first.select();
-            this.first = undefined;
-            this.last.select();
-            this.last = undefined;
-            this.numSelect = 0;
+            this.clear();
         }
         
         // Matching logic
         if (this.first && this.last) {
             //First off, are they the same icon
             if (this.first.name != this.last.name) {
-                this.first.select();
-                this.first = undefined;
-                this.last.select();
-                this.last = undefined;
-                this.numSelect = 0;
+                this.clear();
             } else {
-                this.path = getPath
+                this.path = findPath([this.first.x, this.first.y], [this.last.x, this.last.y], this.grid, [], 2)
+                // Found path, delete Icons
+                if (this.path.length != 0) {
+                    this.kill();
+                    this.remaining --;
+                    this.score += 100;
+                    
+                } else {
+                    this.clear();
+                }
             }
         }
     }
+}
+
+Game.prototype.kill = function() {
+    this.first.clear();
+    this.last.clear();
+    // this.grid[this.first.x][this.first.y].clear();
+    // this.grid[this.last.x][this.last.y].clear();
+    
+    this.grid[this.first.x][this.first.y] = 0;
+    this.grid[this.last.x][this.last.y] = 0;
+    
+    this.first = undefined;
+    this.last = undefined;
+    
+    this.numSelect = 0;
+}
+
+Game.prototype.clear = function() {
+    this.first.select();
+    this.first = undefined;
+    this.last.select();
+    this.last = undefined;
+    this.numSelect = 0;
 }
 
 Game.prototype.makegrid = function() {
@@ -107,31 +165,31 @@ Game.prototype.makegrid = function() {
     var marginTopbottom = (row - h) / 2;
     var marginSide = (col - w) / 2;
 
-    // Model the board space into a 2D matrix
+    // Model the board space into a 2D matrix with empty paddings around it
     for (r = 0; r < this.settings.row; r++) {
+        var oneRow = [];
         if (r >= marginTopbottom && r < this.settings.row - marginTopbottom) {
-
-            var oneRow = [];
             for (c = 0; c < this.settings.col; c++) {
-                oneRow[c] = 1;
                 if (c >= marginSide && c < this.settings.col - marginSide) {
-                    var icon = new Icon(this.deck[i++], r, c);
-                    oneRow[c] = icon // does this work?
+                    // Create new icon object at current position of grid
+                    var icon = new Icon(this.deck[i++], r, c, false);  
                 } 
                 else {
-                    oneRow[c] = 0;
+                    // Create an empty object
+                    var icon = new Icon(null, r, c, true);
                 }
+                oneRow[c] = icon;
             }
-            grid[r] = oneRow;
         }
         else {
-            grid[r] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            for (c = 0; c < this.settings.col; c++) {
+                var icon = new Icon(null, r, c, true);
+                oneRow[c] = icon;
+            }
         }
+        grid[r] = oneRow;
     };
     return grid;
-}
-
-Game.prototype.removeIcon = function(x, y) {
 }
 
 function makeDeck(icons, repeats) {
@@ -141,6 +199,113 @@ function makeDeck(icons, repeats) {
         deck = deck.concat(titles);
     }
     return deck;
+}
+
+// returns a viable path, where cost is bound by the number of turns
+// note that it tries to compute the path greedily, so it doesn't always return the most efficient path:
+// checks which direction is the goal block
+// try to move towards that direction in a straight line until it a) reaches it or b) is on the same plane as it c) hits another block, in which case it stops before the block and tries an alternate route
+// every step of the way the algorithm computes a log of prioritized alternate paths in order to backtrack
+// this is probably similar to an A* algorithm
+function findPath(current, goal, grid, path, turns) {
+    // console.log("current path: " + path);
+
+    var stepsDown = goal[0] - current[0]; // delta row
+    var stepsRight = goal[1] - current[1]; // delta column
+    // var dirLeftRight = Math.abs(stepsLeft) > Math.abs(stepsDown); // Gives a good direction of where it is
+    
+    if (turns == 0) {
+        return []; // No turns left
+    } else if (stepsRight == 0 && stepsDown == 0) {
+        // We are currently on the same grid
+        return path;
+    } else {  // search horizontally and vertically from the current spot, this is the least cost
+        var direct = [];
+        
+        if (stepsDown == 0) { // we should search along the x axis
+            if (stepsRight > 0) {
+                direct = directPath("right", current, goal, grid);
+            } else {
+                direct = directPath("left", current, goal, grid);
+            }
+        }   
+        if (stepsRight == 0) { // search up and down
+            if (stepsDown > 0) {
+                direct = directPath("down", current, goal, grid);
+            } else {
+                direct = directPath("up", current, goal, grid);
+            }
+        }
+        
+        if (direct.length == 0) { 
+            return path;
+            
+        } else { // solve recursively
+            
+            if (path.length == 0) {
+                path = direct;
+            } else {
+                path.concat(direct);
+            }
+            return findPath(direct[direct.length - 1], goal, grid, path, turns);
+            
+        }
+    }
+}
+
+// returns true when there's a direct path in given direction
+// can be solved recursively but I think it's faster this way
+function directPath(dir, current, goal, grid) {
+    var start = current;
+    var pth = [];
+    // console.log("going from: " + current + " to " + goal);
+    while (start != goal) { 
+        switch (dir) {
+            case "left" :
+                // move only when it's not hitting a wall && it's an empty spot, or our goal
+                if (start[1] > 0 && grid[start[0]][start[1] - 1] == 0 || (start[1] - 1 == goal[1] && start[0] == goal[0])) {
+                    start[1] --;
+                    // console.log("captain, we're moving left");
+                    pth.push(start); // add to current path
+                } else {
+                    return pth;
+                }
+                break;
+            case "right" :
+                if (start[1] <= grid[1].length && grid[start[0]][start[1] + 1] == 0 || (start[1] + 1 == goal[1] && start[0] == goal[0])) {
+                    start[1] ++;
+                    pth.push(start);
+                } else {
+                    return pth;
+                }
+                break;
+            case "up" :
+                if (start[0] > 0 && grid[start[0] - 1][start[0]] == 0 || (start[0] - 1 == goal[0] && start[1] == goal[1])) {
+                    start[0] --;
+                    // console.log("moving up");
+                    pth.push(start); // add to current path
+                } else {
+                    return pth;
+                }
+                break;
+            case "down" :
+                if (start[0] < grid[0].length && grid[start[0] + 1][start[0]] == 0 || (start[0] + 1 == goal[0] && start[1] == goal[1])) {
+                    start[0] ++;
+                    // console.log("moving down");
+                    pth.push(start); // add to current path
+                } else {
+                    return pth;
+                }
+                break;
+            default :
+                return;
+        }
+    }
+    if (start == end) {
+        pth.push(start);
+        return pth;
+    }
+    
 }
 
 // Fisher–Yates Shuffle from http://bost.ocks.org/mike/shuffle/
